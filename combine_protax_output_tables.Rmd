@@ -1,0 +1,171 @@
+---
+title: "combine_protax_output_tables"
+author: "Douglas Yu"
+date: "19/05/2019"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+outputs
+    w_protaxout_12S
+#    w_protaxout_16S
+5 or 7 column headings
+"queryID", "taxID", "log_prob", "level", "taxon", "bestHit_similarity", "bestHit"
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+# rm(list = ls())
+```
+
+```{r combine weighted 12S}
+pathtoprotaxout <- "~/src/screenforbio-mbc-23GLG"
+pathtoprotax2 <- "w_protaxout_12S"
+pathtoprotax_file <- "12S_otu.fas."
+# setwd(pathtoprotaxout)
+w_protaxout_12S_class <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, paste0(pathtoprotax_file, "w_class_probs")), col_names = c("queryID", "taxID", "log_prob", "level", "class")) %>%
+    mutate(prob_class = exp(log_prob)) %>%
+    select(queryID, class, prob_class)
+w_protaxout_12S_order <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, paste0(pathtoprotax_file, "w_order_probs")), col_names = c("queryID", "taxID", "log_prob", "level", "order")) %>%
+    mutate(prob_order = exp(log_prob)) %>%
+    select(queryID, order, prob_order)
+w_protaxout_12S_family <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, paste0(pathtoprotax_file, "w_family_probs")), col_names = c("queryID", "taxID", "log_prob", "level", "family")) %>%
+    mutate(prob_family = exp(log_prob)) %>%
+    select(queryID, family, prob_family)
+w_protaxout_12S_genus <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, paste0(pathtoprotax_file, "w_genus_probs")), col_names = c("queryID", "taxID", "log_prob", "level", "genus")) %>%
+    mutate(prob_genus = exp(log_prob)) %>%
+    select(queryID, genus, prob_genus)
+w_protaxout_12S_species <- read.delim(file.path(pathtoprotaxout, pathtoprotax2, paste0(pathtoprotax_file, "w_species_probs_sim")), stringsAsFactors = FALSE, sep = " ", col.names = c("queryID", "taxID", "log_prob", "level", "species", "bestHit_similarity", "bestHit")) %>%
+    mutate(prob_species = exp(log_prob)) %>%
+    mutate(taxID = na_if(taxID, "")) %>%
+    mutate(species = na_if(species, "")) %>%
+    select(queryID, species, prob_species, bestHit_similarity, bestHit)
+
+w_protaxout_12S_all <- w_protaxout_12S_class %>%
+    left_join(w_protaxout_12S_order) %>%
+    left_join(w_protaxout_12S_family) %>%
+    left_join(w_protaxout_12S_genus) %>%
+    left_join(w_protaxout_12S_species)
+w_protaxout_12S_all$protaxmod <- "weighted"
+
+```
+
+```{r combine unweighted 12S}
+pathtoprotaxout <- "~/src/screenforbio-mbc-23GLG"
+pathtoprotax2 <- "protaxout_12S"
+pathtoprotax_file <- "12S_otu.fas."
+# setwd(pathtoprotaxout)
+protaxout_12S_class <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, paste0(pathtoprotax_file, "class_probs")), col_names = c("queryID", "taxID", "log_prob", "level", "class")) %>%
+    mutate(prob_class = exp(log_prob)) %>%
+    select(queryID, class, prob_class)
+protaxout_12S_order <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, paste0(pathtoprotax_file, "order_probs")), col_names = c("queryID", "taxID", "log_prob", "level", "order")) %>%
+    mutate(prob_order = exp(log_prob)) %>%
+    select(queryID, order, prob_order)
+protaxout_12S_family <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, paste0(pathtoprotax_file, "family_probs")), col_names = c("queryID", "taxID", "log_prob", "level", "family")) %>%
+    mutate(prob_family = exp(log_prob)) %>%
+    select(queryID, family, prob_family)
+protaxout_12S_genus <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, paste0(pathtoprotax_file, "genus_probs")), col_names = c("queryID", "taxID", "log_prob", "level", "genus")) %>%
+    mutate(prob_genus = exp(log_prob)) %>%
+    select(queryID, genus, prob_genus)
+protaxout_12S_species <- read.delim(file.path(pathtoprotaxout, pathtoprotax2, paste0(pathtoprotax_file, "species_probs_sim")), stringsAsFactors = FALSE, sep = " ", col.names = c("queryID", "taxID", "log_prob", "level", "species", "bestHit_similarity", "bestHit")) %>%
+    mutate(prob_species = exp(log_prob)) %>%
+    mutate(taxID = na_if(taxID, "")) %>%
+    mutate(species = na_if(species, "")) %>%
+    select(queryID, species, prob_species, bestHit_similarity, bestHit)
+
+protaxout_12S_all <- protaxout_12S_class %>%
+    left_join(protaxout_12S_order) %>%
+    left_join(protaxout_12S_family) %>%
+    left_join(protaxout_12S_genus) %>%
+    left_join(protaxout_12S_species)
+protaxout_12S_all$protaxmod <- "unweighted"
+
+```
+
+# ```{r combine weighted 16S}
+# pathtoprotaxout <- "~/src/screenforbio-mbc-23GLG/"
+# pathtoprotax2 <- "w_protaxout_16S"
+# pathtoprotax_file <- "16S_otu.fas."
+# 
+# w_protaxout_16S_class <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, # paste0(pathtoprotax_file, "w_class_probs")), col_names = c("queryID", "taxID", # "log_prob", "level", "class")) %>%
+#     mutate(prob_class = exp(log_prob)) %>%
+#     select(queryID, class, prob_class)
+# w_protaxout_16S_order <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, # paste0(pathtoprotax_file, "w_order_probs")), col_names = c("queryID", "taxID", # "log_prob", "level", "order")) %>%
+#     mutate(prob_order = exp(log_prob)) %>%
+#     select(queryID, order, prob_order)
+# w_protaxout_16S_family <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, # paste0(pathtoprotax_file, "w_family_probs")), col_names = c("queryID", "taxID", # "log_prob", "level", "family")) %>%
+#     mutate(prob_family = exp(log_prob)) %>%
+#     select(queryID, family, prob_family)
+# w_protaxout_16S_genus <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, # paste0(pathtoprotax_file, "w_genus_probs")), col_names = c("queryID", "taxID", # "log_prob", "level", "genus")) %>%
+#     mutate(prob_genus = exp(log_prob)) %>%
+#     select(queryID, genus, prob_genus)
+# w_protaxout_16S_species <- read.delim(file.path(pathtoprotaxout, pathtoprotax2, # paste0(pathtoprotax_file, "w_species_probs_sim")), stringsAsFactors = FALSE, sep = " ", # col.names = c("queryID", "taxID", "log_prob", "level", "species", "bestHit_similarity", # "bestHit")) %>%
+#     mutate(prob_species = exp(log_prob)) %>%
+#     mutate(taxID = na_if(taxID, "")) %>%
+#     mutate(species = na_if(species, "")) %>%
+#     select(queryID, species, prob_species, bestHit_similarity, bestHit)
+# 
+# w_protaxout_16S_all <- w_protaxout_16S_class %>%
+#     left_join(w_protaxout_16S_order) %>%
+#     left_join(w_protaxout_16S_family) %>%
+#     left_join(w_protaxout_16S_genus) %>%
+#     left_join(w_protaxout_16S_species)
+# w_protaxout_16S_all$protaxmod <- "weighted"
+# 
+# ```
+
+# ```{r combine unweighted 16S}
+# pathtoprotaxout <- "~/src/screenforbio-mbc-23GLG"
+# pathtoprotax2 <- "protaxout_16S"
+# pathtoprotax_file <- "16S_otu.fas."
+# 
+# protaxout_16S_class <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, # paste0(pathtoprotax_file, "class_probs")), col_names = c("queryID", "taxID", # "log_prob", "level", "class")) %>%
+#     mutate(prob_class = exp(log_prob)) %>%
+#     select(queryID, class, prob_class)
+# protaxout_16S_order <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, # paste0(pathtoprotax_file, "order_probs")), col_names = c("queryID", "taxID", # "log_prob", "level", "order")) %>%
+#     mutate(prob_order = exp(log_prob)) %>%
+#     select(queryID, order, prob_order)
+# protaxout_16S_family <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, # paste0(pathtoprotax_file, "family_probs")), col_names = c("queryID", "taxID", # "log_prob", "level", "family")) %>%
+#     mutate(prob_family = exp(log_prob)) %>%
+#     select(queryID, family, prob_family)
+# protaxout_16S_genus <- read_tsv(file.path(pathtoprotaxout, pathtoprotax2, # paste0(pathtoprotax_file, "genus_probs")), col_names = c("queryID", "taxID", # "log_prob", "level", "genus")) %>%
+#     mutate(prob_genus = exp(log_prob)) %>%
+#     select(queryID, genus, prob_genus)
+# protaxout_16S_species <- read.delim(file.path(pathtoprotaxout, pathtoprotax2, # paste0(pathtoprotax_file, "species_probs_sim")), stringsAsFactors = FALSE, sep = " ", # col.names = c("queryID", "taxID", "log_prob", "level", "species", "bestHit_similarity", # "bestHit")) %>%
+#     mutate(prob_species = exp(log_prob)) %>%
+#     mutate(taxID = na_if(taxID, "")) %>%
+#     mutate(species = na_if(species, "")) %>%
+#     select(queryID, species, prob_species, bestHit_similarity, bestHit)
+# 
+# protaxout_16S_all <- protaxout_16S_class %>%
+#     left_join(protaxout_16S_order) %>%
+#     left_join(protaxout_16S_family) %>%
+#     left_join(protaxout_16S_genus) %>%
+#     left_join(protaxout_16S_species)
+# protaxout_16S_all$protaxmod <- "unweighted"
+# ```
+
+```{r}
+# protaxout_16S_weighted_unweighted <- bind_rows(protaxout_16S_all, w_protaxout_16S_all) %>% select(protaxmod, everything()) %>% arrange(queryID)
+
+protaxout_12S_weighted_unweighted <- bind_rows(protaxout_12S_all, w_protaxout_12S_all) %>% select(protaxmod, everything()) %>% arrange(queryID)
+```
+
+
+```{r export tables}
+pathtoprotaxout <- "~/src/screenforbio-mbc-23GLG"
+pathtoprotax2 <- "w_protaxout"
+write_tsv(w_protaxout_12S_all, file.path(pathtoprotaxout, paste0(pathtoprotax2, "_12S"),"w_protaxout_12S_all.tsv"))
+# write_tsv(w_protaxout_16S_all, file.path(pathtoprotaxout, paste0(pathtoprotax2 , "_16S"),"w_protaxout_16S_all.tsv"))
+```
+
+```{r export tables}
+pathtoprotaxout <- "~/src/screenforbio-mbc-23GLG"
+pathtoprotax2 <- "protaxout"
+write_tsv(protaxout_12S_all, file.path(pathtoprotaxout, paste0(pathtoprotax2, "_12S"),"protaxout_12S_all.tsv"))
+# write_tsv(protaxout_16S_all, file.path(pathtoprotaxout, paste0(pathtoprotax2 , "_16S"),"protaxout_16S_all.tsv"))
+```
+

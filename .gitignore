@@ -1,0 +1,13 @@
+intermediate_files/*
+*.log
+MIDORI*
+.Rhistory
+splist.csv
+extra_12S.fa
+extra_16S.fa
+archived_files/extra_16S.fa
+archived_files/extra_12S.fa
+
+# push weighted protaxmodels (w_protaxmodels_GLG/), except for train.lastsim
+w_protaxmodels_GLG/w_model_12S/train.w.lastsim
+w_protaxmodels_GLG/w_model_16S/train.w.lastsim

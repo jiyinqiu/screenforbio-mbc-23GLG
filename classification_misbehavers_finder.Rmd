@@ -1,0 +1,58 @@
+---
+title: "classification_misbehavers_finder"
+author: "Douglas Yu"
+date: "18/05/2019"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(taxize)
+```
+
+```{r}
+setwd("~/src/screenforbio-mbc-ailaoshan")
+taxon <- "Tetrapoda"
+mismatch<-read.table(paste0("MIDORI_",taxon,".ITIS_mismatch_sp.txt"),header=F,sep="\t", stringsAsFactors=FALSE)$V1 # read in text file of names as a character vector
+```
+
+```{r loop through each name in mismatch to find and record classification() misbehavers}
+# using tryCatch() to automatically record where classification() fails
+# https://rsangole.netlify.com/post/try-catch/
+
+outmessages <- character(length(mismatch))# create null vector
+
+# loop through each element of the mismatch vector, apply taxize::classification. If there is an error, the mismatch element is recorded in outmessages
+for (indx in seq_along(mismatch)) {
+    tryCatch(
+        expr = {
+            classification(mismatch[indx], db="col", return_id=FALSE, rows=1) 
+            message(mismatch[indx], " successful ***************************")
+            outmessages[indx] <- paste(mismatch[indx], " successful.")
+        },
+        warning = function(w){
+            message("# Caught a warning on ", mismatch[indx], " ######################")
+            print(w)
+            outmessages[indx] <- paste("Caught a warning on ", mismatch[indx])
+        },
+        error = function(e){
+            message("# Caught an error on ", mismatch[indx], " ######################")
+            print(e)
+            outmessages[indx] <- paste("Caught an error on ", mismatch[indx])
+        }
+    )
+}
+```
+
+```{r}
+outmessagesdf <- as_data_frame(outmessages)
+outmessagesdf_errors <- filter(value == str_detect(outmessagesdf, "error"))
+```
+
+
+
+Example of a species that causes taxize::classification() to crash
+```{r eval=FALSE, include=FALSE}
+mismatch_natrix <- classification("Natrix natrix", db="col", return_id=FALSE, rows=1)
+```
+
